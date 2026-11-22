@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Device Diagnostics Demo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">EDUCATIONAL DEMO</p>
+    <h1>Browser & device diagnostics</h1>
+    <p>This demo records basic technical diagnostics after you give permission. It does not read cookie values, passwords, browser history, or data belonging to other websites.</p>
+    <section class="notice">
+      <h2>What will be sent?</h2>
+      <ul>
+        <li>Public IP address (observed by the cloud server)</li>
+        <li>Browser/OS hints, user-agent, device and screen details</li>
+        <li>Timezone and preferred language</li>
+        <li>Names and counts of storage entries on this website only</li>
+        <li>Names of cookies visible to this website only (not their values)</li>
+        <li>Names of IndexedDB databases on this website only</li>
+      </ul>
+      <p><strong>Do not continue on a shared or sensitive device.</strong> Your report is stored in the project owner's cloud database. After submission, you will be redirected to Amazon India.</p>
+    </section>
+    <label class="consent"><input id="consent" type="checkbox"> I have read the disclosure and consent to sending these diagnostics.</label>
+    <button id="send" disabled>Consent & continue to Amazon India</button>
+    <p id="status" role="status" aria-live="polite"></p>
+    <p class="small">No passwords, cookie values, session tokens, form contents, or storage values are collected.</p>
+  </main>
+  <script src="config.js"></script><script src="app.js"></script>
+</body></html>

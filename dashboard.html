@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnostics Dashboard</title><link rel="stylesheet" href="style.css"></head>
+<body><main class="wide">
+  <p class="eyebrow">ADMIN ONLY</p><h1>Device diagnostics dashboard</h1>
+  <p>Reports are stored in your Cloudflare D1 database. Keep the admin token private.</p>
+  <section class="toolbar">
+    <label>Admin token <input id="token" type="password" autocomplete="current-password" placeholder="Enter ADMIN_TOKEN"></label>
+    <button id="load">Load reports</button><button id="logout" class="secondary">Clear token</button>
+  </section>
+  <p id="status" role="status" aria-live="polite"></p>
+  <div class="table-wrap"><table><thead><tr><th>Received</th><th>IP</th><th>Browser / OS</th><th>Device</th><th>Screen</th><th>Timezone</th><th>Storage summary</th></tr></thead><tbody id="rows"><tr><td colspan="7">No reports loaded.</td></tr></tbody></table></div>
+  <p class="small">This dashboard displays only reports returned by your authenticated backend. It does not expose visitor cookie values or storage contents.</p>
+</main><script src="config.js"></script><script src="dashboard.js"></script></body></html>
