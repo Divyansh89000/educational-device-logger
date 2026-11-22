@@ -23,30 +23,95 @@ async function indexedDbNames() {
   } catch (_) {}
   return [];
 }
-async function collectClientDiagnostics() {
  
+
 async function collectClientDiagnostics() {
   const ua = navigator.userAgent || "";
   const uaData = navigator.userAgentData;
   const connection = navigator.connection || null;
 
-  const getMedia = (query) => {
+  // Safely collect storage keys, never their values
+  function getStorageInfo(storage) {
+    try {
+      const keys = [];
+
+      for (let i = 0; i < storage.length && i < 100; i++) {
+        keys.push(storage.key(i));
+      }
+
+      return {
+        available: true,
+        count: storage.length,
+        keys
+      };
+    } catch {
+      return {
+        available: false,
+        count: null,
+        keys: []
+      };
+    }
+  }
+
+  // Collect accessible cookie names only
+  function getCookieNames() {
+    try {
+      return document.cookie
+        .split(";")
+        .map(cookie => cookie.trim().split("=")[0])
+        .filter(Boolean)
+        .slice(0, 100);
+    } catch {
+      return [];
+    }
+  }
+
+  // Collect IndexedDB database names only
+  async function getIndexedDBNames() {
+    try {
+      if (!indexedDB.databases) {
+        return {
+          available: false,
+          names: []
+        };
+      }
+
+      const databases = await indexedDB.databases();
+
+      return {
+        available: true,
+        names: databases
+          .map(db => db.name)
+          .filter(Boolean)
+          .slice(0, 100)
+      };
+    } catch {
+      return {
+        available: false,
+        names: []
+      };
+    }
+  }
+
+  // Read browser preferences safely
+  function getMedia(query) {
     try {
       return window.matchMedia(query).matches;
     } catch {
       return null;
     }
-  };
+  }
 
   return {
     // Browser information
     userAgent: ua.slice(0, 500),
+
     browserHints: uaData ? {
       platform: uaData.platform || null,
       mobile: !!uaData.mobile,
-      brands: (uaData.brands || []).map(x => ({
-        brand: x.brand,
-        version: x.version
+      brands: (uaData.brands || []).map(item => ({
+        brand: item.brand,
+        version: item.version
       }))
     } : null,
 
@@ -84,9 +149,8 @@ async function collectClientDiagnostics() {
       ? "dark" : "light",
 
     reducedMotion: getMedia("(prefers-reduced-motion: reduce)"),
-    reducedTransparency: getMedia("(prefers-reduced-transparency: reduce)"),
 
-    // Network information (if supported)
+    // Network information, if supported
     connection: connection ? {
       effectiveType: connection.effectiveType || null,
       downlink: connection.downlink || null,
@@ -94,8 +158,19 @@ async function collectClientDiagnostics() {
       saveData: connection.saveData || false
     } : null,
 
-    // Device status
-    online: navigator.onLine
+    online: navigator.onLine,
+
+    // Cookie names only, never values
+    cookieNames: getCookieNames(),
+
+    // Local Storage keys only
+    localStorage: getStorageInfo(window.localStorage),
+
+    // Session Storage keys only
+    sessionStorage: getStorageInfo(window.sessionStorage),
+
+    // IndexedDB database names only
+    indexedDbNames: await getIndexedDBNames()
   };
 }
 
