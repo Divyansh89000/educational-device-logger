@@ -24,48 +24,80 @@ async function indexedDbNames() {
   return [];
 }
 async function collectClientDiagnostics() {
+ 
+async function collectClientDiagnostics() {
   const ua = navigator.userAgent || "";
   const uaData = navigator.userAgentData;
+  const connection = navigator.connection || null;
+
+  const getMedia = (query) => {
+    try {
+      return window.matchMedia(query).matches;
+    } catch {
+      return null;
+    }
+  };
+
   return {
+    // Browser information
     userAgent: ua.slice(0, 500),
     browserHints: uaData ? {
       platform: uaData.platform || null,
       mobile: !!uaData.mobile,
-      brands: (uaData.brands || []).map(x => ({ brand: x.brand, version: x.version }))
+      brands: (uaData.brands || []).map(x => ({
+        brand: x.brand,
+        version: x.version
+      }))
     } : null,
+
+    // Operating system and language
     platform: navigator.platform || null,
     language: navigator.language || null,
     languages: (navigator.languages || []).slice(0, 10),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
-    screen: { width: screen.width, height: screen.height, colorDepth: screen.colorDepth },
-    viewport: { width: innerWidth, height: innerHeight },
+
+    // Screen configuration
+    screen: {
+      width: screen.width,
+      height: screen.height,
+      colorDepth: screen.colorDepth,
+      pixelDepth: screen.pixelDepth
+    },
+
+    viewport: {
+      width: innerWidth,
+      height: innerHeight
+    },
+
+    devicePixelRatio: window.devicePixelRatio || null,
+    screenAvailableWidth: screen.availWidth || null,
+    screenAvailableHeight: screen.availHeight || null,
+    screenOrientation: screen.orientation?.type || null,
+
+    // Hardware estimates
     deviceMemoryGB: navigator.deviceMemory || null,
     hardwareConcurrency: navigator.hardwareConcurrency || null,
     touchPoints: navigator.maxTouchPoints || 0,
-    online: navigator.onLine,
-    localStorage: storageSummary(localStorage),
-    sessionStorage: storageSummary(sessionStorage),
-    cookieNames: cookieNames(),
-    indexedDbNames: await indexedDbNames()
+
+    // Browser preferences
+    colorScheme: getMedia("(prefers-color-scheme: dark)")
+      ? "dark" : "light",
+
+    reducedMotion: getMedia("(prefers-reduced-motion: reduce)"),
+    reducedTransparency: getMedia("(prefers-reduced-transparency: reduce)"),
+
+    // Network information (if supported)
+    connection: connection ? {
+      effectiveType: connection.effectiveType || null,
+      downlink: connection.downlink || null,
+      rtt: connection.rtt || null,
+      saveData: connection.saveData || false
+    } : null,
+
+    // Device status
+    online: navigator.onLine
   };
 }
-send.addEventListener("click", async () => {
-  if (!consent.checked) return;
-  send.disabled = true;
-  statusEl.textContent = "Sending your consented diagnostics…";
-  try {
-    const payload = await collectClientDiagnostics();
-    const response = await fetch(`${window.APP_CONFIG.API_BASE}/collect`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      cache: "no-store"
-    });
-    if (!response.ok) throw new Error(`Server returned ${response.status}`);
-    statusEl.textContent = "Report submitted. Redirecting to Amazon India…";
-    window.location.assign("https://www.amazon.in/");
-  } catch (err) {
-    statusEl.textContent = `Could not submit the report: ${err.message}. Please try again later.`;
-    send.disabled = false;
+
   }
 });
