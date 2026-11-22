@@ -23,7 +23,7 @@ async function indexedDbNames() {
   } catch (_) {}
   return [];
 }
-function collectClientDiagnostics() {
+async function collectClientDiagnostics() {
   const ua = navigator.userAgent || "";
   const uaData = navigator.userAgentData;
   return {
